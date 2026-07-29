@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Memory Grid — Train Your Brain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0a1e;
+    --bg2:#151030;
+    --panel:#1a1540;
+    --panel-edge:#2b2260;
+    --cyan:#4de3ff;
+    --violet:#a970ff;
+    --success:#4dffb0;
+    --danger:#ff5470;
+    --gold:#ffd166;
+    --text:#f1eefc;
+    --muted:#a79cd4;
+    --tile-idle:#241d54;
+    --tile-lit:#4de3ff;
+    --radius:18px;
+    --font-display:'Space Grotesk',sans-serif;
+    --font-body:'Outfit',sans-serif;
+  }
+
+  /* ---------- THEMES ---------- */
+  body[data-theme="dark"]{ --bg:#0c0a1e;--bg2:#151030;--panel:#1a1540;--panel-edge:#2b2260;--tile-lit:#4de3ff;--accent:#4de3ff;--accent2:#a970ff; }
+  body[data-theme="neon"]{ --bg:#0a0014;--bg2:#170028;--panel:#1e0033;--panel-edge:#3d0060;--tile-lit:#ff3df2;--accent:#ff3df2;--accent2:#3df2ff; }
+  body[data-theme="galaxy"]{ --bg:#080417;--bg2:#120a2e;--panel:#191046;--panel-edge:#2e1c73;--tile-lit:#8a6bff;--accent:#8a6bff;--accent2:#ff6bd6; }
+  body[data-theme="fire"]{ --bg:#160705;--bg2:#26100a;--panel:#331610;--panel-edge:#5a2417;--tile-lit:#ff7a3d;--accent:#ff7a3d;--accent2:#ffd166; }
+  body[data-theme="ice"]{ --bg:#040f18;--bg2:#0a1c2c;--panel:#0f2740;--panel-edge:#1b3d5c;--tile-lit:#7fe3ff;--accent:#7fe3ff;--accent2:#c8f4ff; }
+  body[data-theme="forest"]{ --bg:#05140b;--bg2:#0a2114;--panel:#10301c;--panel-edge:#1c4a2c;--tile-lit:#5cff8f;--accent:#5cff8f;--accent2:#c8ff4d; }
+  body[data-theme="ocean"]{ --bg:#020e18;--bg2:#06202f;--panel:#0b3247;--panel-edge:#124763;--tile-lit:#4de3ff;--accent:#4de3ff;--accent2:#5cffb0; }
+  body[data-theme="sakura"]{ --bg:#170a12;--bg2:#2a0f1e;--panel:#391629;--panel-edge:#5c223f;--tile-lit:#ff8fc6;--accent:#ff8fc6;--accent2:#ffd6e8; }
+  body[data-theme="electric"]{ --bg:#0e0e02;--bg2:#1c1c06;--panel:#2b2a08;--panel-edge:#454210;--tile-lit:#f4ff4d;--accent:#f4ff4d;--accent2:#4de3ff; }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 45%),
+      radial-gradient(circle at 85% 90%, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 45%),
+      linear-gradient(160deg, var(--bg), var(--bg2));
+    color:var(--text);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select:none;
+    transition:background 0.6s ease;
+  }
+  h1,h2,h3,.display{font-family:var(--font-display);}
+  #app{max-width:480px;margin:0 auto;min-height:100vh;position:relative;padding:0 0 24px;}
+  .screen{display:none;padding:22px 20px 10px;animation:fadeIn .35s ease;}
+  .screen.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ---------- SPLASH ---------- */
+  #splash{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;text-align:center;gap:14px;}
+  .brain-logo{font-size:64px;filter:drop-shadow(0 0 22px var(--accent));animation:pulseLogo 1.6s ease-in-out infinite;}
+  @keyframes pulseLogo{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+  #splash h1{font-size:30px;margin:6px 0 0;letter-spacing:0.5px;}
+  #splash p{color:var(--muted);margin:2px 0 22px;font-size:14px;letter-spacing:2px;text-transform:uppercase;}
+  .loadbar{width:180px;height:5px;border-radius:6px;background:var(--panel-edge);overflow:hidden;}
+  .loadbar>div{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 2.1s ease forwards;}
+  @keyframes load{to{width:100%;}}
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+  .coin-pill{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--panel-edge);padding:7px 14px;border-radius:999px;font-weight:600;font-size:14px;}
+  .back-btn{background:none;border:1px solid var(--panel-edge);color:var(--text);width:38px;height:38px;border-radius:12px;font-size:16px;cursor:pointer;}
+  .title-row{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+  .title-row h2{margin:0;font-size:20px;}
+
+  /* ---------- MENU ---------- */
+  #menu .logo-row{display:flex;align-items:center;gap:10px;justify-content:center;margin:6px 0 26px;}
+  #menu .logo-row span.icon{font-size:34px;filter:drop-shadow(0 0 14px var(--accent));}
+  #menu h1{margin:0;font-size:26px;}
+  .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .menu-btn{
+    background:linear-gradient(160deg, var(--panel), var(--bg2));
+    border:1px solid var(--panel-edge);
+    border-radius:16px;
+    padding:18px 10px;
+    color:var(--text);
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:14px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .menu-btn:active{transform:scale(0.96);}
+  .menu-btn:hover{border-color:var(--accent);}
+  .menu-btn .em{font-size:24px;}
+  .menu-btn.primary{grid-column:1/3;flex-direction:row;justify-content:center;background:linear-gradient(120deg,var(--accent),var(--accent2));color:#0c0a1e;font-size:17px;padding:16px;}
+  .menu-btn.primary .em{font-size:22px;}
+
+  /* ---------- STAT STRIP ---------- */
+  .stat-strip{display:flex;justify-content:space-between;background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:12px 16px;margin-bottom:18px;}
+  .stat-strip .s{text-align:center;flex:1;}
+  .stat-strip .s b{display:block;font-size:17px;font-family:var(--font-display);}
+  .stat-strip .s span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+
+  /* ---------- GAME SCREEN ---------- */
+  #game{display:flex;flex-direction:column;align-items:center;padding-top:16px;}
+  .hud{width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .hearts{font-size:20px;letter-spacing:3px;}
+  .round-badge{background:var(--panel);border:1px solid var(--panel-edge);padding:6px 14px;border-radius:999px;font-weight:600;font-size:13px;}
+  .score-box{text-align:right;}
+  .score-box b{font-size:22px;font-family:var(--font-display);display:block;}
+  .score-box span{font-size:11px;color:var(--muted);}
+  .combo-tag{position:absolute;top:64px;left:50%;transform:translateX(-50%);font-family:var(--font-display);font-weight:700;color:var(--gold);font-size:15px;opacity:0;pointer-events:none;}
+  .combo-tag.show{animation:comboPop .9s ease forwards;}
+  @keyframes comboPop{0%{opacity:0;transform:translate(-50%,6px) scale(.8);}20%{opacity:1;transform:translate(-50%,0) scale(1.1);}70%{opacity:1;}100%{opacity:0;transform:translate(-50%,-16px) scale(1);}}
+
+  .grid-wrap{margin-top:26px;}
+  .grid{display:grid;gap:12px;}
+  .tile{
+    width:78px;height:78px;border-radius:16px;
+    background:var(--tile-idle);
+    border:1px solid var(--panel-edge);
+    cursor:pointer;
+    transition:transform .08s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .grid.size4 .tile{width:62px;height:62px;}
+  .grid.size5 .tile{width:50px;height:50px;}
+  .tile:active{transform:scale(0.93);}
+  .tile.lit{background:var(--tile-lit);box-shadow:0 0 26px 4px var(--tile-lit), inset 0 0 12px rgba(255,255,255,.5);}
+  .tile.correct{background:var(--success);box-shadow:0 0 22px var(--success);}
+  .tile.wrong{background:var(--danger);box-shadow:0 0 22px var(--danger);animation:shake .3s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+
+  /* skins */
+  body[data-skin="glass"] .tile{background:rgba(255,255,255,.06);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.25);}
+  body[data-skin="crystal"] .tile{background:linear-gradient(135deg, var(--tile-idle), var(--accent2) 140%);}
+  body[data-skin="wooden"] .tile{background:linear-gradient(160deg,#7a4a25,#4d2e15);border-color:#3a2210;}
+  body[data-skin="gold"] .tile{background:linear-gradient(160deg,#ffe08a,#b8842a);border-color:#8a611b;}
+  body[data-skin="diamond"] .tile{background:linear-gradient(160deg,#eafcff,#9adfe8);border-color:#bdf3fa;}
+
+  .status-line{margin-top:22px;font-size:13px;color:var(--muted);height:18px;text-align:center;}
+
+  /* ---------- OVERLAYS (pause / gameover) ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(6,4,18,.82);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px);}
+  .overlay.show{display:flex;}
+  .card{background:var(--panel);border:1px solid var(--panel-edge);border-radius:22px;padding:28px 26px;width:87%;max-width:340px;text-align:center;animation:popIn .25s ease;}
+  @keyframes popIn{from{transform:scale(.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .card h2{margin:0 0 4px;font-size:24px;}
+  .card .sub{color:var(--muted);font-size:13px;margin-bottom:18px;}
+  .go-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+  .go-stats div{background:var(--bg2);border-radius:12px;padding:10px 6px;}
+  .go-stats b{display:block;font-size:19px;font-family:var(--font-display);}
+  .go-stats span{font-size:11px;color:var(--muted);}
+  .new-best{color:var(--gold);font-weight:700;font-size:13px;margin-bottom:12px;}
+
+  .btn{
+    display:block;width:100%;padding:13px;border-radius:14px;border:none;
+    font-family:var(--font-body);font-weight:600;font-size:15px;cursor:pointer;margin-top:10px;
+    background:var(--panel-edge);color:var(--text);
+  }
+  .btn.primary{background:linear-gradient(120deg,var(--accent),var(--accent2));color:#0c0a1e;}
+  .btn.ghost{background:transparent;border:1px solid var(--panel-edge);}
+  .btn.danger{background:var(--danger);color:#fff;}
+
+  /* ---------- LISTS (achievements/shop/themes) ---------- */
+  .list{display:flex;flex-direction:column;gap:10px;}
+  .row-card{background:var(--panel);border:1px solid var(--panel-edge);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;}
+  .row-card .em{font-size:24px;width:34px;text-align:center;}
+  .row-card .info{flex:1;}
+  .row-card .info b{display:block;font-size:14px;}
+  .row-card .info span{font-size:12px;color:var(--muted);}
+  .row-card.locked{opacity:.55;}
+  .pill-btn{background:var(--panel-edge);border:none;color:var(--text);font-size:12px;font-weight:600;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+  .pill-btn.owned{background:var(--success);color:#08331f;}
+  .pill-btn.selected{background:var(--accent);color:#0c0a1e;}
+  .pill-btn.locked-tag{background:transparent;border:1px solid var(--panel-edge);color:var(--muted);}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .tab{flex:1;text-align:center;padding:9px;border-radius:12px;background:var(--panel);border:1px solid var(--panel-edge);font-size:12px;font-weight:600;cursor:pointer;}
+  .tab.active{background:var(--accent);color:#0c0a1e;border-color:var(--accent);}
+
+  .progress-bar{width:100%;height:8px;background:var(--bg2);border-radius:6px;overflow:hidden;margin-top:6px;}
+  .progress-bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+
+  .toggle{width:46px;height:26px;border-radius:20px;background:var(--panel-edge);position:relative;cursor:pointer;flex-shrink:0;}
+  .toggle.on{background:var(--accent);}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s ease;}
+  .toggle.on::after{transform:translateX(20px);}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:14px 4px;border-bottom:1px solid var(--panel-edge);}
+  .setting-row:last-child{border-bottom:none;}
+  .setting-row b{font-size:14px;font-weight:500;}
+
+  select.lang{background:var(--panel);color:var(--text);border:1px solid var(--panel-edge);border-radius:10px;padding:6px 10px;font-family:var(--font-body);}
+
+  .modal-choice{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+  .grid-choice-btn{background:var(--bg2);border:1px solid var(--panel-edge);border-radius:14px;padding:14px;text-align:left;cursor:pointer;color:var(--text);}
+  .grid-choice-btn b{display:block;font-size:14px;}
+  .grid-choice-btn span{font-size:12px;color:var(--muted);}
+  .grid-choice-btn.chosen{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, var(--bg2));}
+
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--accent);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:80;opacity:0;pointer-events:none;}
+  .toast.show{animation:toastPop 2.2s ease forwards;}
+  @keyframes toastPop{0%{opacity:0;transform:translate(-50%,10px);}15%{opacity:1;transform:translate(-50%,0);}85%{opacity:1;}100%{opacity:0;transform:translate(-50%,-6px);}}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:60;}
+  .confetti span{position:absolute;top:-10px;font-size:16px;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:0;}}
+
+  .about-text{color:var(--muted);font-size:13px;line-height:1.7;}
+  .footer-note{text-align:center;color:var(--muted);font-size:11px;margin-top:20px;}
+</style>
+</head>
+<body data-theme="dark" data-skin="default">
+<div id="app">
+
+  <!-- SPLASH -->
+  <div id="splash">
+    <div class="brain-logo">🧠</div>
+    <h1>Memory Grid</h1>
+    <p>Train Your Brain</p>
+    <div class="loadbar"><div></div></div>
+  </div>
+
+  <!-- MAIN MENU -->
+  <section id="menu" class="screen">
+    <div class="logo-row"><span class="icon">🧠</span><h1>Memory Grid</h1></div>
+    <div class="stat-strip">
+      <div class="s"><b id="mHigh">0</b><span>High Score</span></div>
+      <div class="s"><b id="mCoins">0</b><span>Coins</span></div>
+      <div class="s"><b id="mRound">0</b><span>Best Round</span></div>
+    </div>
+    <div class="menu-grid">
+      <button class="menu-btn primary" onclick="openGridChoice()"><span class="em">▶️</span> Play</button>
+      <button class="menu-btn" onclick="showScreen('achievements')"><span class="em">🏆</span> Achievements</button>
+      <button class="menu-btn" onclick="showScreen('stats')"><span class="em">📊</span> Statistics</button>
+      <button class="menu-btn" onclick="showScreen('themes')"><span class="em">🎨</span> Themes</button>
+      <button class="menu-btn" onclick="showScreen('shop')"><span class="em">🛒</span> Shop</button>
+      <button class="menu-btn" onclick="showScreen('daily')"><span class="em">🎁</span> Daily Reward</button>
+      <button class="menu-btn" onclick="showScreen('settings')"><span class="em">⚙️</span> Settings</button>
+      <button class="menu-btn" onclick="showScreen('about')"><span class="em">ℹ️</span> About</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section id="game" class="screen">
+    <div class="hud" style="position:relative;">
+      <div>
+        <div class="hearts" id="hearts">❤️❤️❤️</div>
+        <div class="round-badge" id="roundBadge">Round 1</div>
+      </div>
+      <div class="score-box">
+        <b id="scoreVal">0</b>
+        <span>SCORE</span>
+      </div>
+    </div>
+    <div class="combo-tag" id="comboTag"></div>
+    <div class="grid-wrap">
+      <div class="grid size3" id="grid"></div>
+    </div>
+    <div class="status-line" id="statusLine">Watch the sequence…</div>
+    <div style="display:flex;gap:10px;width:100%;margin-top:22px;">
+      <button class="btn ghost" style="margin-top:0;" onclick="pauseGame()">⏸ Pause</button>
+      <button class="btn ghost" style="margin-top:0;" onclick="goHome(true)">🏠 Home</button>
+    </div>
+  </section>
+
+  <!-- ACHIEVEMENTS -->
+  <section id="achievements" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>🏆 Achievements</h2></div>
+    <div class="progress-bar" style="margin-bottom:16px;"><div id="achProgressBar" style="width:0%"></div></div>
+    <div class="list" id="achList"></div>
+  </section>
+
+  <!-- STATISTICS -->
+  <section id="stats" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>📊 Statistics</h2></div>
+    <div class="list" id="statsList"></div>
+  </section>
+
+  <!-- THEMES -->
+  <section id="themes" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>🎨 Themes</h2></div>
+    <div class="list" id="themeList"></div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="shop" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>🛒 Shop</h2></div>
+    <div class="stat-strip" style="margin-bottom:14px;"><div class="s"><b id="shopCoins">0</b><span>Coins</span></div></div>
+    <div class="tabs">
+      <div class="tab active" data-tab="skins" onclick="switchShopTab('skins')">Tile Skins</div>
+      <div class="tab" data-tab="ads" onclick="switchShopTab('ads')">Earn Coins</div>
+      <div class="tab" data-tab="support" onclick="switchShopTab('support')">Support</div>
+    </div>
+    <div class="list" id="shopList"></div>
+  </section>
+
+  <!-- DAILY REWARDS -->
+  <section id="daily" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>🎁 Daily Rewards</h2></div>
+    <p class="about-text">Come back every day for a bigger prize. Miss a day and the streak restarts.</p>
+    <div class="list" id="dailyList"></div>
+    <button class="btn primary" id="claimBtn" onclick="claimDaily()">Claim Today's Reward</button>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="settings" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>⚙️ Settings</h2></div>
+    <div class="row-card" style="display:block;">
+      <div class="setting-row"><b>🎵 Music</b><div class="toggle" id="tgMusic" onclick="toggleSetting('music')"></div></div>
+      <div class="setting-row"><b>🔊 Sound Effects</b><div class="toggle" id="tgSound" onclick="toggleSetting('sound')"></div></div>
+      <div class="setting-row"><b>📳 Vibration</b><div class="toggle" id="tgVibration" onclick="toggleSetting('vibration')"></div></div>
+      <div class="setting-row"><b>🌐 Language</b>
+        <select class="lang" id="langSelect" onchange="setLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn danger" onclick="confirmReset()">Reset Progress</button>
+    <p class="footer-note">Your privacy: all progress is stored only on this device (localStorage) and never leaves your browser.</p>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="screen">
+    <div class="title-row"><button class="back-btn" onclick="showScreen('menu')">←</button><h2>ℹ️ About</h2></div>
+    <p class="about-text">Memory Grid is an endless brain-training game. Watch the glowing tile sequence, repeat it back, and see how many rounds you can survive as the pace quickens. Unlock themes and tile skins, chase achievements, and build a streak with daily rewards.</p>
+    <p class="about-text">Version 1.0 · Single-file offline game · Progress saves automatically to this device.</p>
+  </section>
+
+</div>
+
+<!-- GRID CHOICE MODAL -->
+<div class="overlay" id="gridChoiceOverlay">
+  <div class="card">
+    <h2>Choose Your Grid</h2>
+    <p class="sub">Sequences get longer and faster the further you go — no matter the size.</p>
+    <div class="modal-choice">
+      <button class="grid-choice-btn chosen" data-size="3" onclick="chooseGridSize(3)"><b>3×3 Classic</b><span>The original Memory Grid experience</span></button>
+      <button class="grid-choice-btn" data-size="4" onclick="chooseGridSize(4)"><b>4×4 Challenge</b><span>More tiles, sharper focus required</span></button>
+      <button class="grid-choice-btn" data-size="5" onclick="chooseGridSize(5)"><b>5×5 Expert</b><span>For true Memory Grid masters</span></button>
+    </div>
+    <button class="btn primary" onclick="startGame()">Start</button>
+    <button class="btn ghost" onclick="closeOverlay('gridChoiceOverlay')">Cancel</button>
+  </div>
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div class="overlay" id="pauseOverlay">
+  <div class="card">
+    <h2>⏸ Paused</h2>
+    <p class="sub">Take a breath, then jump back in.</p>
+    <button class="btn primary" onclick="resumeGame()">Resume</button>
+    <button class="btn ghost" onclick="restartGame()">Restart</button>
+    <button class="btn ghost" onclick="showScreen('settings');closeOverlay('pauseOverlay')">Settings</button>
+    <button class="btn ghost" onclick="goHome(false)">🏠 Home</button>
+  </div>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="gameOverOverlay">
+  <div class="card">
+    <h2>💀 Game Over</h2>
+    <div class="new-best" id="newBestTag" style="display:none;">🌟 New High Score!</div>
+    <div class="go-stats">
+      <div><b id="goScore">0</b><span>Final Score</span></div>
+      <div><b id="goHigh">0</b><span>High Score</span></div>
+      <div><b id="goRound">0</b><span>Round Reached</span></div>
+      <div><b id="goCombo">0</b><span>Best Combo</span></div>
+    </div>
+    <button class="btn primary" onclick="closeOverlay('gameOverOverlay');openGridChoice();">▶ Play Again</button>
+    <button class="btn ghost" onclick="closeOverlay('gameOverOverlay');goHome(false);">🏠 Home</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== DATA / PERSISTENCE ===================== */
+const DEFAULT_STATE = {
+  coins: 100,
+  highScore: 0,
+  highRound: 0,
+  gamesPlayed: 0,
+  totalCorrectSequences: 0,
+  totalMistakes: 0,
+  longestCombo: 0,
+  totalCoinsEarned: 0,
+  reactionSamples: 0,
+  reactionTotalMs: 0,
+  unlockedThemes: ["dark"],
+  unlockedSkins: ["default"],
+  selectedTheme: "dark",
+  selectedSkin: "default",
+  achievements: {},
+  daily: { lastClaimDate: null, streak: 0 },
+  settings: { music: true, sound: true, vibration: true, language: "en" }
+};
+
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem('memoryGridSave');
+    if(!raw) return structuredClone(DEFAULT_STATE);
+    const parsed = JSON.parse(raw);
+    return Object.assign(structuredClone(DEFAULT_STATE), parsed, {
+      settings: Object.assign({}, DEFAULT_STATE.settings, parsed.settings || {}),
+      daily: Object.assign({}, DEFAULT_STATE.daily, parsed.daily || {}),
+      achievements: Object.assign({}, parsed.achievements || {})
+    });
+  }catch(e){ return structuredClone(DEFAULT_STATE); }
+}
+function saveState(){ localStorage.setItem('memoryGridSave', JSON.stringify(state)); }
+
+/* ===================== CONTENT DEFINITIONS ===================== */
+const THEMES = [
+  {id:"dark", name:"Dark", em:"🌙", cost:0},
+  {id:"neon", name:"Neon", em:"🌈", cost:150},
+  {id:"galaxy", name:"Galaxy", em:"🌌", cost:200},
+  {id:"fire", name:"Fire", em:"🔥", cost:180},
+  {id:"ice", name:"Ice", em:"❄️", cost:180},
+  {id:"forest", name:"Forest", em:"🌿", cost:160},
+  {id:"ocean", name:"Ocean", em:"🌊", cost:160},
+  {id:"sakura", name:"Sakura", em:"🌸", cost:220},
+  {id:"electric", name:"Electric", em:"⚡", cost:220},
+];
+const SKINS = [
+  {id:"default", name:"Classic Tiles", em:"⬜", cost:0},
+  {id:"glass", name:"Glass Tiles", em:"🧊", cost:120},
+  {id:"crystal", name:"Crystal Tiles", em:"💠", cost:160},
+  {id:"wooden", name:"Wooden Tiles", em:"🪵", cost:100},
+  {id:"gold", name:"Gold Tiles", em:"🏅", cost:300},
+  {id:"diamond", name:"Diamond Tiles", em:"💎", cost:400},
+];
+const ACHIEVEMENTS = [
+  {id:"first_game", em:"🎮", name:"First Game", desc:"Play your first game", coins:20, check:s=>s.gamesPlayed>=1},
+  {id:"score_100", em:"⭐", name:"Score 100", desc:"Reach a score of 100", coins:20, check:s=>s.highScore>=100},
+  {id:"score_500", em:"🌟", name:"Score 500", desc:"Reach a score of 500", coins:40, check:s=>s.highScore>=500},
+  {id:"score_1000", em:"✨", name:"Score 1000", desc:"Reach a score of 1000", coins:60, check:s=>s.highScore>=1000},
+  {id:"round_20", em:"📈", name:"Reach Round 20", desc:"Survive to round 20", coins:50, check:s=>s.highRound>=20},
+  {id:"round_50", em:"🚀", name:"Reach Round 50", desc:"Survive to round 50", coins:100, check:s=>s.highRound>=50},
+  {id:"combo_20", em:"🔥", name:"20 Combo", desc:"Chain a 20-round combo", coins:50, check:s=>s.longestCombo>=20},
+  {id:"combo_50", em:"💥", name:"50 Combo", desc:"Chain a 50-round combo", coins:100, check:s=>s.longestCombo>=50},
+  {id:"memory_master", em:"🧠", name:"Memory Master", desc:"Reach a score of 2000", coins:120, check:s=>s.highScore>=2000},
+  {id:"speed_genius", em:"⚡", name:"Speed Genius", desc:"Survive to round 30", coins:80, check:s=>s.highRound>=30},
+  {id:"brain_champion", em:"👑", name:"Brain Champion", desc:"Unlock every other achievement", coins:200,
+    check:s=> ACHIEVEMENTS.slice(0,-1).every(a=>s.achievements[a.id]) },
+];
+const DAILY_TABLE = [
+  {day:1, label:"100 Coins", em:"🪙"},
+  {day:2, label:"Extra Life Charm", em:"❤️"},
+  {day:3, label:"150 Coins", em:"🪙"},
+  {day:4, label:"200 Coins", em:"🪙"},
+  {day:5, label:"250 Coins", em:"🪙"},
+  {day:6, label:"400 Coins", em:"🪙"},
+  {day:7, label:"Legendary Badge + 500 Coins", em:"🏅"},
+];
+
+/* ===================== NAVIGATION ===================== */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='menu') refreshMenu();
+  if(id==='achievements') renderAchievements();
+  if(id==='stats') renderStats();
+  if(id==='themes') renderThemes();
+  if(id==='shop') renderShop();
+  if(id==='daily') renderDaily();
+  if(id==='settings') renderSettings();
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.remove('show'); void t.offsetWidth;
+  t.classList.add('show');
+}
+
+function refreshMenu(){
+  document.getElementById('mHigh').textContent=state.highScore;
+  document.getElementById('mCoins').textContent=state.coins;
+  document.getElementById('mRound').textContent=state.highRound;
+}
+
+/* ===================== AUDIO ===================== */
+let audioCtx=null;
+function ensureAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function playTone(freq, dur=0.18, type='sine', vol=0.18){
+  if(!state.settings.sound) return;
+  ensureAudio(); if(!audioCtx) return;
+  const o=audioCtx.createOscillator(); const g=audioCtx.createGain();
+  o.type=type; o.frequency.value=freq;
+  g.gain.value=vol;
+  o.connect(g); g.connect(audioCtx.destination);
+  const now=audioCtx.currentTime;
+  g.gain.setValueAtTime(vol, now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now+dur);
+  o.start(now); o.stop(now+dur);
+}
+function vibrate(pattern){ if(state.settings.vibration && navigator.vibrate) navigator.vibrate(pattern); }
+
+const TILE_FREQS=[261.6,293.7,329.6,349.2,392.0,440.0,493.9,523.3,587.3,659.3,698.5,783.9,880.0,987.8,1046.5,1174.7,1318.5,1396.9,1568.0,1760.0,1975.5,2093.0,2349.3,2637.0,2793.0];
+
+/* ===================== THEME / SKIN APPLY ===================== */
+function applyThemeSkin(){
+  document.body.dataset.theme = state.selectedTheme;
+  document.body.dataset.skin = state.selectedSkin;
+}
+
+/* ===================== GAME STATE ===================== */
+let gridSize = 3;
+let sequence = [];
+let round = 1;
+let lives = 3;
+let score = 0;
+let combo = 0;
+let bestComboThisGame = 0;
+let acceptingInput = false;
+let playerIndex = 0;
+let inputEnabledAt = 0;
+let reactionAccumMs = 0;
+let reactionTaps = 0;
+let comboMilestones = new Set();
+
+function openGridChoice(){
+  document.getElementById('gridChoiceOverlay').classList.add('show');
+}
+function chooseGridSize(size){
+  gridSize = size;
+  document.querySelectorAll('.grid-choice-btn').forEach(b=>b.classList.remove('chosen'));
+  document.querySelector('.grid-choice-btn[data-size="'+size+'"]').classList.add('chosen');
+}
+function closeOverlay(id){ document.getElementById(id).classList.remove('show'); }
+
+function startGame(){
+  closeOverlay('gridChoiceOverlay');
+  ensureAudio();
+  sequence=[]; round=1; lives=3; score=0; combo=0; bestComboThisGame=0; comboMilestones=new Set();
+  reactionAccumMs=0; reactionTaps=0;
+  buildGrid();
+  updateHud();
+  showScreen('game');
+  document.getElementById('statusLine').textContent='Watch the sequence…';
+  setTimeout(nextRound, 500);
+}
+
+function restartGame(){
+  closeOverlay('pauseOverlay');
+  startGame();
+}
+
+function goHome(confirmFirst){
+  if(confirmFirst){
+    if(!confirm('Leave this run? Your progress in this game will be lost.')) return;
+  }
+  closeOverlay('pauseOverlay');
+  showScreen('menu');
+}
+
+function buildGrid(){
+  const grid=document.getElementById('grid');
+  grid.className='grid size'+gridSize;
+  grid.style.gridTemplateColumns='repeat('+gridSize+', 1fr)';
+  grid.innerHTML='';
+  const total=gridSize*gridSize;
+  for(let i=0;i<total;i++){
+    const t=document.createElement('div');
+    t.className='tile';
+    t.dataset.idx=i;
+    t.addEventListener('click', ()=>onTileTap(i));
+    grid.appendChild(t);
+  }
+}
+
+function updateHud(){
+  document.getElementById('hearts').textContent='❤️'.repeat(lives)+'🖤'.repeat(3-lives);
+  document.getElementById('roundBadge').textContent='Round '+round;
+  document.getElementById('scoreVal').textContent=score;
+}
+
+function speedForRound(r){
+  return Math.max(230, 780 - r*14);
+}
+
+function nextRound(){
+  const total=gridSize*gridSize;
+  sequence.push(Math.floor(Math.random()*total));
+  playSequence();
+}
+
+function playSequence(){
+  acceptingInput=false;
+  playerIndex=0;
+  document.getElementById('statusLine').textContent='Watch closely…';
+  const speed=speedForRound(round);
+  let i=0;
+  function step(){
+    if(i>=sequence.length){
+      acceptingInput=true;
+      inputEnabledAt=performance.now();
+      document.getElementById('statusLine').textContent='Your turn — repeat the sequence';
+      return;
+    }
+    const idx=sequence[i];
+    const tile=document.querySelector('.tile[data-idx="'+idx+'"]');
+    tile.classList.add('lit');
+    playTone(TILE_FREQS[idx % TILE_FREQS.length], speed/1000*0.7, 'triangle', 0.15);
+    setTimeout(()=>{ tile.classList.remove('lit'); }, speed*0.6);
+    i++;
+    setTimeout(step, speed);
+  }
+  setTimeout(step, 400);
+}
+
+function onTileTap(idx){
+  if(!acceptingInput) return;
+  const tile=document.querySelector('.tile[data-idx="'+idx+'"]');
+  const expected=sequence[playerIndex];
+  if(idx===expected){
+    tile.classList.add('correct');
+    setTimeout(()=>tile.classList.remove('correct'),200);
+    playTone(TILE_FREQS[idx % TILE_FREQS.length], 0.15, 'sine', 0.2);
+    vibrate(15);
+    const now=performance.now();
+    reactionAccumMs += (now-inputEnabledAt);
+    reactionTaps++;
+    inputEnabledAt=now;
+    playerIndex++;
+    if(playerIndex===sequence.length){
+      acceptingInput=false;
+      roundComplete();
+    }
+  } else {
+    tile.classList.add('wrong');
+    setTimeout(()=>tile.classList.remove('wrong'),300);
+    playTone(146.8, 0.32, 'sawtooth', 0.22);
+    vibrate([40,30,40]);
+    acceptingInput=false;
+    combo=0;
+    lives--;
+    state.totalMistakes++;
+    updateHud();
+    if(lives<=0){
+      setTimeout(gameOver, 400);
+    } else {
+      document.getElementById('statusLine').textContent='Not quite — watch again';
+      setTimeout(playSequence, 700);
+    }
+  }
+}
+
+function roundComplete(){
+  score+=10;
+  combo++;
+  bestComboThisGame=Math.max(bestComboThisGame, combo);
+  state.totalCorrectSequences++;
+  const coinGain = 2 + Math.floor(round/5);
+  state.coins += coinGain;
+  state.totalCoinsEarned += coinGain;
+  let bonus=0;
+  if(combo===5 && !comboMilestones.has(5)){ bonus=20; comboMilestones.add(5); }
+  else if(combo===10 && !comboMilestones.has(10)){ bonus=50; comboMilestones.add(10); }
+  else if(combo===20 && !comboMilestones.has(20)){ bonus=100; comboMilestones.add(20); }
+  else if(combo>20 && combo%20===0){ bonus=100; }
+  if(bonus>0){
+    score+=bonus;
+    const tag=document.getElementById('comboTag');
+    tag.textContent='COMBO x'+combo+'  +'+bonus;
+    tag.classList.remove('show'); void tag.offsetWidth; tag.classList.add('show');
+    playTone(880,0.25,'square',0.15);
+  }
+  round++;
+  updateHud();
+  saveState();
+  document.getElementById('statusLine').textContent='Nice! Next round…';
+  setTimeout(nextRound, 900);
+}
+
+function pauseGame(){ document.getElementById('pauseOverlay').classList.add('show'); }
+function resumeGame(){ document.getElementById('pauseOverlay').classList.remove('show'); }
+
+function gameOver(){
+  state.gamesPlayed++;
+  const isNewHigh = score>state.highScore;
+  state.highScore=Math.max(state.highScore, score);
+  state.highRound=Math.max(state.highRound, round-1);
+  state.longestCombo=Math.max(state.longestCombo, bestComboThisGame);
+  if(reactionTaps>0){
+    state.reactionSamples += reactionTaps;
+    state.reactionTotalMs += reactionAccumMs;
+  }
+  saveState();
+  checkAchievements();
+
+  document.getElementById('goScore').textContent=score;
+  document.getElementById('goHigh').textContent=state.highScore;
+  document.getElementById('goRound').textContent=Math.max(0,round-1);
+  document.getElementById('goCombo').textContent=bestComboThisGame;
+  document.getElementById('newBestTag').style.display = isNewHigh ? 'block':'none';
+  if(isNewHigh) launchConfetti();
+  playTone(196,0.4,'sawtooth',0.2);
+  document.getElementById('gameOverOverlay').classList.add('show');
+}
+
+function launchConfetti(){
+  const el=document.createElement('div');
+  el.className='confetti';
+  const emojis=['🎉','✨','⭐','🏆','💫'];
+  for(let i=0;i<24;i++){
+    const s=document.createElement('span');
+    s.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    s.style.left=Math.random()*100+'%';
+    s.style.animationDuration=(1.6+Math.random()*1.2)+'s';
+    s.style.fontSize=(14+Math.random()*14)+'px';
+    el.appendChild(s);
+  }
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+/* ===================== ACHIEVEMENTS ===================== */
+function checkAchievements(){
+  let unlockedAny=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(!state.achievements[a.id] && a.check(state)){
+      state.achievements[a.id]=true;
+      state.coins+=a.coins;
+      state.totalCoinsEarned+=a.coins;
+      unlockedAny=true;
+      toast('🏆 Achievement unlocked: '+a.name+' (+'+a.coins+' coins)');
+    }
+  });
+  if(unlockedAny) saveState();
+}
+
+function renderAchievements(){
+  const list=document.getElementById('achList');
+  list.innerHTML='';
+  let unlockedCount=0;
+  ACHIEVEMENTS.forEach(a=>{
+    const done=!!state.achievements[a.id];
+    if(done) unlockedCount++;
+    const row=document.createElement('div');
+    row.className='row-card'+(done?'':' locked');
+    row.innerHTML='<div class="em">'+a.em+'</div><div class="info"><b>'+a.name+'</b><span>'+a.desc+'</span></div>'+
+      (done? '<span class="pill-btn owned">Unlocked</span>' : '<span class="pill-btn locked-tag">Locked</span>');
+    list.appendChild(row);
+  });
+  document.getElementById('achProgressBar').style.width=(unlockedCount/ACHIEVEMENTS.length*100)+'%';
+}
+
+/* ===================== STATISTICS ===================== */
+function renderStats(){
+  const avgReaction = state.reactionSamples>0 ? Math.round(state.reactionTotalMs/state.reactionSamples) : 0;
+  const rows=[
+    ['🏆','Highest Score', state.highScore],
+    ['📈','Highest Round', state.highRound],
+    ['🎮','Games Played', state.gamesPlayed],
+    ['✅','Total Correct Sequences', state.totalCorrectSequences],
+    ['❌','Total Mistakes', state.totalMistakes],
+    ['🔥','Longest Combo', state.longestCombo],
+    ['⏱️','Average Reaction Time', avgReaction+' ms'],
+    ['🖼️','Themes Unlocked', state.unlockedThemes.length+' / '+THEMES.length],
+    ['🪙','Total Coins Earned', state.totalCoinsEarned],
+  ];
+  const list=document.getElementById('statsList');
+  list.innerHTML='';
+  rows.forEach(r=>{
+    const row=document.createElement('div');
+    row.className='row-card';
+    row.innerHTML='<div class="em">'+r[0]+'</div><div class="info"><b>'+r[2]+'</b><span>'+r[1]+'</span></div>';
+    list.appendChild(row);
+  });
+}
+
+/* ===================== THEMES ===================== */
+function renderThemes(){
+  const list=document.getElementById('themeList');
+  list.innerHTML='';
+  THEMES.forEach(t=>{
+    const owned = state.unlockedThemes.includes(t.id);
+    const selected = state.selectedTheme===t.id;
+    const row=document.createElement('div');
+    row.className='row-card'+(owned?'':' locked');
+    let btn;
+    if(selected) btn='<span class="pill-btn selected">Selected</span>';
+    else if(owned) btn='<button class="pill-btn owned" onclick="selectTheme(\''+t.id+'\')">Select</button>';
+    else btn='<button class="pill-btn" onclick="buyTheme(\''+t.id+'\')">🪙 '+t.cost+'</button>';
+    row.innerHTML='<div class="em">'+t.em+'</div><div class="info"><b>'+t.name+'</b><span>'+(owned?'Owned':'Locked — unlock with coins')+'</span></div>'+btn;
+    list.appendChild(row);
+  });
+}
+function selectTheme(id){ state.selectedTheme=id; applyThemeSkin(); saveState(); renderThemes(); }
+function buyTheme(id){
+  const t=THEMES.find(x=>x.id===id);
+  if(state.coins<t.cost){ toast("Not enough coins yet"); return; }
+  state.coins-=t.cost;
+  state.unlockedThemes.push(id);
+  state.selectedTheme=id;
+  applyThemeSkin();
+  saveState();
+  toast('Unlocked '+t.name+' theme!');
+  renderThemes();
+}
+
+/* ===================== SHOP (skins + earn coins + support) ===================== */
+let shopTab='skins';
+function switchShopTab(tab){
+  shopTab=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  renderShop();
+}
+function renderShop(){
+  document.getElementById('shopCoins').textContent=state.coins;
+  const list=document.getElementById('shopList');
+  list.innerHTML='';
+  if(shopTab==='skins'){
+    SKINS.forEach(sk=>{
+      const owned=state.unlockedSkins.includes(sk.id);
+      const selected=state.selectedSkin===sk.id;
+      const row=document.createElement('div');
+      row.className='row-card'+(owned?'':' locked');
+      let btn;
+      if(selected) btn='<span class="pill-btn selected">Selected</span>';
+      else if(owned) btn='<button class="pill-btn owned" onclick="selectSkin(\''+sk.id+'\')">Select</button>';
+      else btn='<button class="pill-btn" onclick="buySkin(\''+sk.id+'\')">🪙 '+sk.cost+'</button>';
+      row.innerHTML='<div class="em">'+sk.em+'</div><div class="info"><b>'+sk.name+'</b><span>'+(owned?'Owned':'Locked — unlock with coins')+'</span></div>'+btn;
+      list.appendChild(row);
+    });
+  } else if(shopTab==='ads'){
+    const row=document.createElement('div');
+    row.className='row-card';
+    row.innerHTML='<div class="em">🎥</div><div class="info"><b>Watch Rewarded Ad</b><span>Demo ad break — earn a coin bonus</span></div><button class="pill-btn" onclick="watchAd()">+50</button>';
+    list.appendChild(row);
+    const note=document.createElement('p');
+    note.className='about-text';
+    note.textContent='Playing rounds and unlocking achievements also earns coins automatically.';
+    list.appendChild(note);
+  } else if(shopTab==='support'){
+    const row=document.createElement('div');
+    row.className='row-card';
+    row.innerHTML='<div class="em">💖</div><div class="info"><b>Support the Developer</b><span>Enjoying Memory Grid? Your support helps fund future updates. This is entirely optional — you can keep unlocking everything with coins or ads.</span></div>';
+    list.appendChild(row);
+  }
+}
+function selectSkin(id){ state.selectedSkin=id; applyThemeSkin(); saveState(); renderShop(); }
+function buySkin(id){
+  const sk=SKINS.find(x=>x.id===id);
+  if(state.coins<sk.cost){ toast("Not enough coins yet"); return; }
+  state.coins-=sk.cost;
+  state.unlockedSkins.push(id);
+  state.selectedSkin=id;
+  applyThemeSkin();
+  saveState();
+  toast('Unlocked '+sk.name+'!');
+  renderShop();
+}
+function watchAd(){
+  toast('▶ Playing demo ad… (2s)');
+  setTimeout(()=>{
+    state.coins+=50;
+    state.totalCoinsEarned+=50;
+    saveState();
+    toast('+50 coins! Thanks for watching.');
+    renderShop();
+  }, 1600);
+}
+
+/* ===================== DAILY REWARDS ===================== */
+function todayKey(){
+  const d=new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+function daysBetween(a,b){
+  const d1=new Date(a), d2=new Date(b);
+  return Math.round((d2-d1)/86400000);
+}
+function renderDaily(){
+  const list=document.getElementById('dailyList');
+  list.innerHTML='';
+  const currentStreakDay = ((state.daily.streak) % 7) + 1;
+  DAILY_TABLE.forEach(d=>{
+    const row=document.createElement('div');
+    const isClaimedToday = state.daily.lastClaimDate===todayKey() && d.day===currentStreakDay;
+    const isCurrent = d.day===currentStreakDay && state.daily.lastClaimDate!==todayKey();
+    row.className='row-card'+(isCurrent?'':(isClaimedToday?'':' locked'));
+    row.innerHTML='<div class="em">'+d.em+'</div><div class="info"><b>Day '+d.day+'</b><span>'+d.label+'</span></div>'+
+      (isClaimedToday?'<span class="pill-btn owned">Claimed</span>': isCurrent? '<span class="pill-btn selected">Today</span>' : '<span class="pill-btn locked-tag">—</span>');
+    list.appendChild(row);
+  });
+  const claimBtn=document.getElementById('claimBtn');
+  const alreadyClaimed = state.daily.lastClaimDate===todayKey();
+  claimBtn.disabled=alreadyClaimed;
+  claimBtn.textContent= alreadyClaimed ? "Come back tomorrow!" : "Claim Today's Reward";
+  claimBtn.style.opacity = alreadyClaimed ? 0.55 : 1;
+}
+function claimDaily(){
+  if(state.daily.lastClaimDate===todayKey()) return;
+  let streak=state.daily.streak;
+  if(state.daily.lastClaimDate){
+    const gap=daysBetween(state.daily.lastClaimDate, todayKey());
+    streak = (gap===1) ? streak+1 : 0;
+  }
+  const dayIdx = (streak % 7);
+  const reward = DAILY_TABLE[dayIdx];
+  let coinGain=0;
+  if(reward.label.includes('Coins')) coinGain=parseInt(reward.label);
+  else coinGain=50;
+  state.coins+=coinGain;
+  state.totalCoinsEarned+=coinGain;
+  state.daily.streak=streak+1;
+  state.daily.lastClaimDate=todayKey();
+  saveState();
+  toast('🎁 '+reward.label+' claimed!');
+  renderDaily();
+}
+
+/* ===================== SETTINGS ===================== */
+function renderSettings(){
+  document.getElementById('tgMusic').classList.toggle('on', state.settings.music);
+  document.getElementById('tgSound').classList.toggle('on', state.settings.sound);
+  document.getElementById('tgVibration').classList.toggle('on', state.settings.vibration);
+  document.getElementById('langSelect').value = state.settings.language;
+}
+function toggleSetting(key){
+  state.settings[key]=!state.settings[key];
+  saveState();
+  renderSettings();
+}
+function setLanguage(val){
+  state.settings.language=val;
+  saveState();
+  toast('Language preference saved (interface text stays in English for this demo build)');
+}
+function confirmReset(){
+  if(confirm('This will erase all progress: scores, coins, achievements, and unlocks. Continue?')){
+    state = structuredClone(DEFAULT_STATE);
+    saveState();
+    applyThemeSkin();
+    toast('Progress reset');
+    showScreen('menu');
+  }
+}
+
+/* ===================== BOOT ===================== */
+applyThemeSkin();
+setTimeout(()=>{
+  document.getElementById('splash').style.display='none';
+  showScreen('menu');
+}, 2200);
+</script>
+</body>
+</html>
