@@ -294,7 +294,7 @@
     <div class="stat-strip" style="margin-bottom:14px;"><div class="s"><b id="shopCoins">0</b><span>Coins</span></div></div>
     <div class="tabs">
       <div class="tab active" data-tab="skins" onclick="switchShopTab('skins')">Tile Skins</div>
-      <div class="tab" data-tab="ads" onclick="switchShopTab('ads')">Earn Coins</div>
+      <div class="tab" data-tab="ads" onclick="switchShopTab('ads'); watchShopAdForCoins()">Earn Coins</div>
       <div class="tab" data-tab="support" onclick="switchShopTab('support')">Support</div>
     </div>
     <div class="list" id="shopList"></div>
@@ -709,7 +709,12 @@ function gameOver(){
   if(isNewHigh) launchConfetti();
   playTone(196,0.4,'sawtooth',0.2);
   document.getElementById('gameOverOverlay').classList.add('show');
-}
+// Trigger full-screen ad break at game over
+(adsbygoogle = window.adsbygoogle || []).push({
+  google_ad_client: "ca-pub-2787859372641116",
+  enable_page_level_ads: true,
+  overlays: {bottom: true}
+});
 
 function launchConfetti(){
   const el=document.createElement('div');
@@ -864,15 +869,22 @@ function buySkin(id){
   toast('Unlocked '+sk.name+'!');
   renderShop();
 }
-function watchAd(){
-  toast('▶ Playing demo ad… (2s)');
-  setTimeout(()=>{
-    state.coins+=50;
-    state.totalCoinsEarned+=50;
-    saveState();
-    toast('+50 coins! Thanks for watching.');
-    renderShop();
-  }, 1600);
+function watchAd() {
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-2787859372641116",
+    enable_page_level_ads: true,
+    
+    // Automatically runs when the player finishes watching the video
+    adBreak: function(o) { 
+      if (o.type === 'reward') {
+        state.coins += 50;
+        state.totalCoinsEarned += 50;
+        saveState();
+        toast('+50 coins! Thanks for watching.');
+        renderShop();
+      }
+    }
+  });
 }
 
 /* ===================== DAILY REWARDS ===================== */
